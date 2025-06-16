@@ -36,6 +36,10 @@ dependencies {
 	// SpringBoot Starter Web
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 
+	// S3
+	implementation platform('io.awspring.cloud:spring-cloud-aws-dependencies:3.0.1')
+	implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
+
 	// jwt
 	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
 

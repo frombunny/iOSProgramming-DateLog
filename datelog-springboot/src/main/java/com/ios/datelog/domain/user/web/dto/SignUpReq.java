@@ -10,7 +10,7 @@ public record SignUpReq(
         @NotBlank(message = "비밀번호는 필수 항목입니다.")
         String password,
 
-        MultipartFile multipartFile,
+        MultipartFile profileImage,
 
         @NotBlank(message = "이메일은 필수 항목입니다.")
         String email

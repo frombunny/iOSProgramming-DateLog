@@ -1,6 +1,7 @@
 package com.ios.datelog.domain.entity;
 
 import com.ios.datelog.domain.entity.enums.Action;
+import com.ios.datelog.domain.user.entity.User;
 import com.ios.datelog.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;

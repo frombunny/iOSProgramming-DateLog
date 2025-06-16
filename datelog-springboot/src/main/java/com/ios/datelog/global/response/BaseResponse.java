@@ -11,7 +11,7 @@ import java.time.format.DateTimeFormatter;
 @Getter
 @ToString
 @RequiredArgsConstructor
-public class BaseResponse {
+public class BaseResponse { // 모든 API 응답의 공통 상위 타입
     private final Boolean isSuccess;
     private final String code;
     private final String message;

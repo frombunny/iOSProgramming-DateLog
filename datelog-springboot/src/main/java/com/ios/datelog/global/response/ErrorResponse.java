@@ -21,7 +21,7 @@ public class ErrorResponse<T> extends BaseResponse {
     }
 
     // 추가 데이터 없이 표준 코드+메시지만 담는 단순한 에러 응답
-    public static ErrorResponse<?> of(BaseResponseCode baseResponseCode) {
+    public static ErrorResponse<?> from(BaseResponseCode baseResponseCode) {
         return new ErrorResponse<>(null, baseResponseCode.getCode(), baseResponseCode.getMessage(),
                 baseResponseCode.getHttpStatus());
     }

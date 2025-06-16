@@ -17,7 +17,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<SuccessResponse<Void>> signUp(@ModelAttribute @Valid SignUpReq signUpReq) throws IOException {
+    public ResponseEntity<SuccessResponse<Void>> signUp(@ModelAttribute @Valid SignUpReq signUpReq){
         userService.signUp(signUpReq);
         return ResponseEntity.ok(SuccessResponse.empty());
     }

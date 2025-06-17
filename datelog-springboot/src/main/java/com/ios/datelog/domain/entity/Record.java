@@ -22,7 +22,7 @@ public class Record extends BaseEntity {
 
     private String title;
 
-    private String memo;
+    private String diary;
 
     private String image;
 

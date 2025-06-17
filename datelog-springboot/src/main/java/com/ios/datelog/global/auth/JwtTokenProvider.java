@@ -23,7 +23,7 @@ import java.util.Date;
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
-    private final MyUserDetailsService userDetailsService;
+    private final JwtUserDetailsService jwtUserDetailsService;
 
     @Value("${application.security.jwt.secret-key}")
     private String secretKey;
@@ -69,7 +69,7 @@ public class JwtTokenProvider {
         Claims claims = getClaims(token);
         String user = claims.getSubject();
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(user);
+        UserDetails userDetails = jwtUserDetailsService.loadUserByUsername(user);
 
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                 userDetails, null, userDetails.getAuthorities());

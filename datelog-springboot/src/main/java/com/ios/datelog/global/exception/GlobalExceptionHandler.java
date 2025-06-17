@@ -1,10 +1,16 @@
 package com.ios.datelog.global.exception;
 
+import com.ios.datelog.domain.user.exception.UserErrorCode;
+import com.ios.datelog.global.auth.exception.AuthErrorCode;
 import com.ios.datelog.global.response.ErrorResponse;
 import com.ios.datelog.global.response.code.GlobalErrorCode;
+import jakarta.security.auth.message.AuthException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.BindException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -58,6 +64,27 @@ public class GlobalExceptionHandler {
         ErrorResponse<?> errorResponse = ErrorResponse.from(GlobalErrorCode.INVALID_HTTP_MESSAGE_BODY);
         return ResponseEntity.status(errorResponse.getHttpStatus()).body(errorResponse);
     }
+
+    /**
+     * 로그인 시 존재하지 않는 사용자일 때
+     */
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<ErrorResponse<?>> handleUsernameNotFound(UsernameNotFoundException e) {
+        log.error("UsernameNotFoundException Error : {} ", e.getMessage(), e);
+        ErrorResponse<?> errorResponse = ErrorResponse.from(UserErrorCode.USER_NOT_FOUND_404);
+        return ResponseEntity.status(errorResponse.getHttpStatus()).body(errorResponse);
+    }
+
+    /**
+     * 로그인 시 비밀번호가 일치하지 않을 떄
+     */
+    @ExceptionHandler(BadCredentialsException.class)
+    private ResponseEntity<ErrorResponse<?>> handleBadCredentialsException(BadCredentialsException e) {
+        log.error("BadCredentialsException Error : {} ", e.getMessage(), e);
+        ErrorResponse<?> errorResponse = ErrorResponse.from(AuthErrorCode.UNAUTHORIZED_401);
+        return ResponseEntity.status(errorResponse.getHttpStatus()).body(errorResponse);
+    }
+
 
     /**
      * Request 값을 읽을 수 없는 경우 발생(JSON 불일치, 데이터 타입 불일치 등)

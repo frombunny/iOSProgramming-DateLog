@@ -9,9 +9,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-@Service
+@Service("jwtDetailsService")     // 토큰 검증(PK) 전용
 @RequiredArgsConstructor
-public class MyUserDetailsService implements UserDetailsService {
+public class JwtUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
 
     /**

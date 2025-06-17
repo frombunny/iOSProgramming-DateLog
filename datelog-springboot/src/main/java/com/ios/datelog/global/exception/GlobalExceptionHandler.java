@@ -4,9 +4,7 @@ import com.ios.datelog.domain.user.exception.UserErrorCode;
 import com.ios.datelog.global.auth.exception.AuthErrorCode;
 import com.ios.datelog.global.response.ErrorResponse;
 import com.ios.datelog.global.response.code.GlobalErrorCode;
-import jakarta.security.auth.message.AuthException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -18,6 +16,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
+import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 @Slf4j
@@ -66,25 +66,24 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 로그인 시 존재하지 않는 사용자일 때
+     * 잘못된 엔드포인트 호출할 경우 발생
      */
-    @ExceptionHandler(UsernameNotFoundException.class)
-    public ResponseEntity<ErrorResponse<?>> handleUsernameNotFound(UsernameNotFoundException e) {
-        log.error("UsernameNotFoundException Error : {} ", e.getMessage(), e);
-        ErrorResponse<?> errorResponse = ErrorResponse.from(UserErrorCode.USER_NOT_FOUND_404);
+    @ExceptionHandler(NoHandlerFoundException.class)
+    private ResponseEntity<ErrorResponse<?>> handleNoHandlerFoundException(NoHandlerFoundException e) {
+        log.error("NoHandlerFoundException Error : {} ", e.getMessage(), e);
+        ErrorResponse<?> errorResponse = ErrorResponse.from(GlobalErrorCode.NOT_FOUND_ENDPOINT);
         return ResponseEntity.status(errorResponse.getHttpStatus()).body(errorResponse);
     }
 
     /**
-     * 로그인 시 비밀번호가 일치하지 않을 떄
+     * 정적 리소스 조차 찾지 못했을 경우 발생
      */
-    @ExceptionHandler(BadCredentialsException.class)
-    private ResponseEntity<ErrorResponse<?>> handleBadCredentialsException(BadCredentialsException e) {
-        log.error("BadCredentialsException Error : {} ", e.getMessage(), e);
-        ErrorResponse<?> errorResponse = ErrorResponse.from(AuthErrorCode.UNAUTHORIZED_401);
+    @ExceptionHandler(NoResourceFoundException.class)
+    private ResponseEntity<ErrorResponse<?>> handleNoResourceFoundException(NoResourceFoundException e) {
+        log.error("NoResourceFoundException Error : {} ", e.getMessage(), e);
+        ErrorResponse<?> errorResponse = ErrorResponse.from(GlobalErrorCode.NOT_FOUND_ENDPOINT);
         return ResponseEntity.status(errorResponse.getHttpStatus()).body(errorResponse);
     }
-
 
     /**
      * Request 값을 읽을 수 없는 경우 발생(JSON 불일치, 데이터 타입 불일치 등)
@@ -114,6 +113,26 @@ public class GlobalExceptionHandler {
         log.error("MissingServletRequestParameterException Error : {}", e.getMessage(), e);
         ErrorResponse<?> errorResponse = ErrorResponse.of(GlobalErrorCode.BAD_REQUEST_ERROR,
                 e.getRequestPartName()+" 파트가 요청에 없습니다.");
+        return ResponseEntity.status(errorResponse.getHttpStatus()).body(errorResponse);
+    }
+
+    /**
+     * 로그인 시 존재하지 않는 사용자일 때
+     */
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<ErrorResponse<?>> handleUsernameNotFound(UsernameNotFoundException e) {
+        log.error("UsernameNotFoundException Error : {} ", e.getMessage(), e);
+        ErrorResponse<?> errorResponse = ErrorResponse.from(UserErrorCode.USER_NOT_FOUND_404);
+        return ResponseEntity.status(errorResponse.getHttpStatus()).body(errorResponse);
+    }
+
+    /**
+     * 로그인 시 비밀번호가 일치하지 않을 떄
+     */
+    @ExceptionHandler(BadCredentialsException.class)
+    private ResponseEntity<ErrorResponse<?>> handleBadCredentialsException(BadCredentialsException e) {
+        log.error("BadCredentialsException Error : {} ", e.getMessage(), e);
+        ErrorResponse<?> errorResponse = ErrorResponse.from(AuthErrorCode.UNAUTHORIZED_401);
         return ResponseEntity.status(errorResponse.getHttpStatus()).body(errorResponse);
     }
 

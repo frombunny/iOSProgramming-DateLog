@@ -1,4 +1,4 @@
-package com.ios.datelog.domain.entity.enums;
+package com.ios.datelog.domain.place.entity.enums;
 
 public enum Tag {
     ROMANTIC,

@@ -9,5 +9,5 @@ import java.util.List;
 
 @Repository
 public interface PlaceRepository extends JpaRepository<Place, Long> {
-    List<Place> findAllByTag(Tag tag);
+    List<Place> findAllByTagAndNameContainingIgnoreCase(Tag tag, String keyword);
 }

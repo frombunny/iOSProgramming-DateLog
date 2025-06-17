@@ -14,8 +14,8 @@ import java.util.stream.Collectors;
 public class PlaceService {
     private final PlaceRepository placeRepository;
 
-    public List<GetPlaceRes> getPlaceList(Tag tag){
-        return placeRepository.findAllByTag(tag)
+    public List<GetPlaceRes> getPlaceList(Tag tag, String keyword){
+        return placeRepository.findAllByTagAndNameContainingIgnoreCase(tag, keyword)
                 .stream()
                 .map(GetPlaceRes::of)
                 .collect(Collectors.toList());

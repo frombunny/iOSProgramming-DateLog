@@ -17,8 +17,10 @@ public class PlaceController {
     private final PlaceService placeService;
 
     @GetMapping
-    public ResponseEntity<SuccessResponse<List<GetPlaceRes>>> getPlaceListByTag(@RequestParam Tag tag) {
-        List<GetPlaceRes> getPlaceResList = placeService.getPlaceList(tag);
+    public ResponseEntity<SuccessResponse<List<GetPlaceRes>>> getPlaceListByTag(
+            @RequestParam Tag tag,
+            @RequestParam(required = false, defaultValue = "") String keyword){
+        List<GetPlaceRes> getPlaceResList = placeService.getPlaceList(tag, keyword);
         return ResponseEntity.ok(SuccessResponse.from(getPlaceResList));
     }
 }

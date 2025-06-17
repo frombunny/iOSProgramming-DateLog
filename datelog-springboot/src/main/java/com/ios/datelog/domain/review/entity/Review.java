@@ -1,6 +1,7 @@
-package com.ios.datelog.domain.entity;
+package com.ios.datelog.domain.review.entity;
 
 import com.ios.datelog.domain.place.entity.Place;
+import com.ios.datelog.domain.review.web.dto.CreateReviewReq;
 import com.ios.datelog.domain.user.entity.User;
 import com.ios.datelog.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -25,5 +26,13 @@ public class Review extends BaseEntity {
     @JoinColumn(name = "place_id")
     private Place place;
 
-    private double rating;
+    private String content;
+
+    public static Review toEntity(User user, Place place, CreateReviewReq createReviewReq) {
+        return Review.builder()
+                .user(user)
+                .place(place)
+                .content(createReviewReq.content())
+                .build();
+    }
 }

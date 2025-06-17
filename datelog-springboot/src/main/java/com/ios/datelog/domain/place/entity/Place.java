@@ -1,9 +1,13 @@
 package com.ios.datelog.domain.place.entity;
 
+import com.ios.datelog.domain.review.entity.Review;
 import com.ios.datelog.domain.place.entity.enums.Tag;
 import com.ios.datelog.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Builder

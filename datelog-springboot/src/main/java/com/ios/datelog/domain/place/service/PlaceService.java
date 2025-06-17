@@ -32,14 +32,18 @@ public class PlaceService {
     public List<GetPlaceRes> getRecentPlaceList(UserPrincipal userPrincipal){
         User user = userRepository.getUserById(userPrincipal.getId());
 
-        List<Review> reviewList = reviewRepository.findAllByUser(user);
-        List<Long> placeIdList = reviewList.stream()
-                .map(Review::getId)
+        List<Place> placeList = reviewRepository.findAllByUserOrderByCreatedAtDesc(user)
+                .stream()
+                .map(Review::getPlace)
                 .toList();
 
-        List<Place> placeList = placeRepository.findAllByIdIn(placeIdList);
-
         return placeList.stream()
+                .map(GetPlaceRes::of)
+                .collect(Collectors.toList());
+    }
+
+    public List<GetPlaceRes> getRandomPlaceList(){
+        return placeRepository.findRandomFivePlaces().stream()
                 .map(GetPlaceRes::of)
                 .collect(Collectors.toList());
     }

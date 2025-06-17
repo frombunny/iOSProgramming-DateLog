@@ -32,4 +32,10 @@ public class PlaceController {
         List<GetPlaceRes> getPlaceResList = placeService.getRecentPlaceList(userPrincipal);
         return ResponseEntity.ok(SuccessResponse.from(getPlaceResList));
     }
+
+    @GetMapping("/recommend")
+    public ResponseEntity<SuccessResponse<List<GetPlaceRes>>> getRecommendPlaceList(){
+        List<GetPlaceRes> getPlaceResList = placeService.getRandomPlaceList();
+        return ResponseEntity.ok(SuccessResponse.from(getPlaceResList));
+    }
 }

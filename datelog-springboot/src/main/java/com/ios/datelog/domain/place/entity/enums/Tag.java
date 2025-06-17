@@ -6,5 +6,10 @@ public enum Tag {
     HEALING,
     FOCUS,
     CULTURE_ART,
-    ACTIVITY
+    ACTIVITY,
+    FOOD,
+    NATURE,
+    HISTORY,
+    SPORTS,
+    SHOPPING
 }

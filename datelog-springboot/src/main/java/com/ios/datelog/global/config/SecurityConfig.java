@@ -1,5 +1,7 @@
 package com.ios.datelog.global.config;
 
+import com.ios.datelog.global.auth.CustomAuthenticationEntryPoint;
+import com.ios.datelog.global.auth.JwtTokenFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,11 +11,15 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSecurity
 public class SecurityConfig {
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final JwtTokenFilter jwtTokenFilter;
+
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
@@ -21,7 +27,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
+        http
                 .csrf(AbstractHttpConfigurer::disable) // csrf 비활성화
                 .cors(cors -> {})
                 .sessionManagement((session)->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션을 사용하지 않도록
@@ -29,6 +35,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .build();
+                .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(exception -> exception.authenticationEntryPoint(customAuthenticationEntryPoint));
+
+        return  http.build();
     }
 }

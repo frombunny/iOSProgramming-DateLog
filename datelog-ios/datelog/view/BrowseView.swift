@@ -4,6 +4,7 @@
 //
 //  Created by 임혜정 on 6/15/25.
 //
+// 데이트장소 검색 화면
 
 import Foundation
 import SwiftUI

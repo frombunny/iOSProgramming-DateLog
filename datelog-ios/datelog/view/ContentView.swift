@@ -3,7 +3,7 @@
 //  datelog
 //
 //  Created by 임혜정 on 6/15/25.
-//
+// 메인 화면
 
 import SwiftUI
 
@@ -30,18 +30,27 @@ let sampleVisited: [Place] = [
 
 // MARK: - 뷰
 struct ContentView: View {
-    var body: some View {
-        TabView {
-            NavigationStack { HomeView() }
-                .tabItem { Label("홈", systemImage: "house.fill") }
+  var body: some View {
+    NavigationStack {
+      TabView {
+        HomeView()
+          .tabItem { Label("홈",   systemImage: "house.fill") }
 
-            NavigationStack { BrowseView() }
-                .tabItem { Label("찾아보기", systemImage: "magnifyingglass") }
+        BrowseView()
+          .tabItem { Label("찾아보기", systemImage: "magnifyingglass") }
 
-            NavigationStack { Text("데이트로그") }
-                .tabItem { Label("데이트로그", systemImage: "calendar") }
+          DateLogView()
+          .tabItem { Label("데이트로그", systemImage: "calendar") }
+      }
+      // 공통 툴바 / 타이틀
+      .toolbar {
+        ToolbarItem(placement: .principal) {
+          Text("Date:Log").font(.headline)
         }
+      }
+      .navigationBarTitleDisplayMode(.inline)
     }
+  }
 }
 
 struct HomeView: View {
@@ -49,7 +58,6 @@ struct HomeView: View {
     @State private var keyword: String = ""
     
     var body: some View {
-        NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     // 페이지 타이틀
@@ -68,8 +76,19 @@ struct HomeView: View {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 12) {
                             ForEach(sampleRecommended) { place in
-                                PlaceCard(place: place)
-                                    .frame(width: 184, height: 213)
+                                NavigationLink {
+                                    // 여기에 PlaceDetailView 초기화
+                                    PlaceDetailView(
+                                        imageName: place.imageName,
+                                        title: place.title,
+                                        description: place.description,
+                                        locationName: place.title,           // 임시로 제목을 위치명으로
+                                        locationAddress: "서울시 어딘가"
+                                    )
+                                } label: {
+                                    PlaceCard(place: place)
+                                        .frame(width: 184, height: 213)
+                                }
                             }
                         }
                         .padding(.horizontal, 16)
@@ -80,59 +99,69 @@ struct HomeView: View {
                         .font(.headline)
                         .padding(.horizontal, 4)
                     
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 2), spacing: 12) {
+                    LazyVGrid(
+                        columns: Array(repeating: .init(.flexible(), spacing: 8), count: 2),
+                        spacing: 12
+                    ) {
                         ForEach(sampleVisited) { place in
-                            PlaceCard(place: place)
-                                .frame(height: 213)
+                            NavigationLink {
+                                PlaceDetailView(
+                                    imageName: place.imageName,
+                                    title: place.title,
+                                    description: place.description,
+                                    locationName: place.title,
+                                    locationAddress: "서울시 어딘가"
+                                )
+                            } label: {
+                                PlaceCard(place: place)
+                                    .frame(height: 213)
+                            }
                         }
                     }
                 }
                 .padding(.horizontal, 16)
-                .padding(.bottom, 80) // 탭바 높이 여유
+                .padding(.bottom, 80)
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Text("Date:Log")
-                        .font(.headline)
+                    Text("Date:Log").font(.headline)
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Image(systemName: "magnifyingglass")
                 }
             }
         }
-    }
-}
-
-// MARK: - 서브뷰
-struct PlaceCard: View {
-    let place: Place
     
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Image(place.imageName)
-                .resizable()
-                .scaledToFill()
-                .frame(maxWidth: .infinity, maxHeight: 128)
-                .clipped()
-                .cornerRadius(8)
-            
-            Text(place.title)
-                .font(.system(size: 15, weight: .semibold))
-                .lineLimit(1)
-            
-            Text(place.description)
-                .font(.system(size: 11))
-                .foregroundColor(.secondary)
-                .lineLimit(2)
+    // MARK: - 서브뷰
+    struct PlaceCard: View {
+        let place: Place
+        
+        var body: some View {
+            VStack(alignment: .leading, spacing: 6) {
+                Image(place.imageName)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(maxWidth: .infinity, maxHeight: 128)
+                    .clipped()
+                    .cornerRadius(8)
+                
+                Text(place.title)
+                    .font(.system(size: 15, weight: .semibold))
+                    .lineLimit(1)
+                
+                Text(place.description)
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+                    .lineLimit(2)
+            }
+            .padding(8)
+            .background(Color(.systemBackground))
+            .cornerRadius(12)
+            .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
         }
-        .padding(8)
-        .background(Color(.systemBackground))
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
     }
 }
-
 
 struct SearchBar: View {
     @Binding var text: String

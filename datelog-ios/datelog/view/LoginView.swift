@@ -1,3 +1,11 @@
+//
+//  LoginView.swift
+//  datelog
+//
+//  Created by 임혜정 on 6/15/25.
+//
+// 로그인 화면
+
 import SwiftUI
 
 // MARK: - 로그인 화면

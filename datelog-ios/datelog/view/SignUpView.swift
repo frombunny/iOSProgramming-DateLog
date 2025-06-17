@@ -3,7 +3,7 @@
 //  datelog
 //
 //  Created by 임혜정 on 6/15/25.
-//
+// 회원가입 화면
 
 import SwiftUI
 import PhotosUI

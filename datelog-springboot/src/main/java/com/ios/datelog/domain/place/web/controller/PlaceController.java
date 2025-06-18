@@ -1,6 +1,5 @@
 package com.ios.datelog.domain.place.web.controller;
 
-import com.ios.datelog.domain.place.entity.Place;
 import com.ios.datelog.domain.place.entity.enums.Tag;
 import com.ios.datelog.domain.place.repository.PlaceRepository;
 import com.ios.datelog.domain.place.service.PlaceService;
@@ -20,11 +19,10 @@ import java.util.List;
 @RequestMapping("/api/place")
 public class PlaceController {
     private final PlaceService placeService;
-    private final PlaceRepository placeRepository;
 
     @GetMapping
     public ResponseEntity<SuccessResponse<List<GetPlaceRes>>> getPlaceListByTag(
-            @RequestParam Tag tag,
+            @RequestParam(required = false) Tag tag,
             @RequestParam(required = false, defaultValue = "") String keyword){
         List<GetPlaceRes> getPlaceResList = placeService.getPlaceList(tag, keyword);
         return ResponseEntity.ok(SuccessResponse.from(getPlaceResList));

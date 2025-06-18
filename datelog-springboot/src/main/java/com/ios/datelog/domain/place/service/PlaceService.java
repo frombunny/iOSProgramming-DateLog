@@ -24,7 +24,9 @@ public class PlaceService {
     private final ReviewRepository reviewRepository;
 
     public List<GetPlaceRes> getPlaceList(Tag tag, String keyword){
-        return placeRepository.findAllByTagAndNameContainingIgnoreCase(tag, keyword)
+        String searchKeyword = (keyword != null && !keyword.isEmpty()) ? keyword : null;
+
+        return placeRepository.findPlacesByTagAndKeyword(tag, searchKeyword)
                 .stream()
                 .map(GetPlaceRes::from)
                 .collect(Collectors.toList());

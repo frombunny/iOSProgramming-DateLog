@@ -1,7 +1,7 @@
-package com.ios.datelog.domain.record.repository;
+package com.ios.datelog.domain.datelog.repository;
 
-import com.ios.datelog.domain.record.entity.Datelog;
-import com.ios.datelog.domain.record.exception.DatelogNotFoundException;
+import com.ios.datelog.domain.datelog.entity.Datelog;
+import com.ios.datelog.domain.datelog.exception.DatelogNotFoundException;
 import com.ios.datelog.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 

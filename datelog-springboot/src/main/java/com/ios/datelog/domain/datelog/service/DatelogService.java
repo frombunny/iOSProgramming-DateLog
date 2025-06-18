@@ -1,9 +1,9 @@
-package com.ios.datelog.domain.record.service;
+package com.ios.datelog.domain.datelog.service;
 
-import com.ios.datelog.domain.record.entity.Datelog;
-import com.ios.datelog.domain.record.repository.DatelogRepository;
-import com.ios.datelog.domain.record.web.dto.CreateDatelogReq;
-import com.ios.datelog.domain.record.web.dto.GetDatelogRes;
+import com.ios.datelog.domain.datelog.entity.Datelog;
+import com.ios.datelog.domain.datelog.repository.DatelogRepository;
+import com.ios.datelog.domain.datelog.web.dto.CreateDatelogReq;
+import com.ios.datelog.domain.datelog.web.dto.GetDatelogRes;
 import com.ios.datelog.domain.user.entity.User;
 import com.ios.datelog.domain.user.exception.CanNotAccessException;
 import com.ios.datelog.domain.user.repository.UserRepository;

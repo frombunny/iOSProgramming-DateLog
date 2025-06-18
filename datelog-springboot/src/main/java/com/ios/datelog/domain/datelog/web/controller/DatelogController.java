@@ -1,8 +1,8 @@
-package com.ios.datelog.domain.record.web.controller;
+package com.ios.datelog.domain.datelog.web.controller;
 
-import com.ios.datelog.domain.record.service.DatelogService;
-import com.ios.datelog.domain.record.web.dto.CreateDatelogReq;
-import com.ios.datelog.domain.record.web.dto.GetDatelogRes;
+import com.ios.datelog.domain.datelog.service.DatelogService;
+import com.ios.datelog.domain.datelog.web.dto.CreateDatelogReq;
+import com.ios.datelog.domain.datelog.web.dto.GetDatelogRes;
 import com.ios.datelog.global.auth.UserPrincipal;
 import com.ios.datelog.global.response.SuccessResponse;
 import jakarta.validation.Valid;

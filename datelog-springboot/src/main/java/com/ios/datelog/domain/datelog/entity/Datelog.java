@@ -1,6 +1,6 @@
-package com.ios.datelog.domain.record.entity;
+package com.ios.datelog.domain.datelog.entity;
 
-import com.ios.datelog.domain.record.web.dto.CreateDatelogReq;
+import com.ios.datelog.domain.datelog.web.dto.CreateDatelogReq;
 import com.ios.datelog.domain.user.entity.User;
 import com.ios.datelog.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -29,6 +29,8 @@ public class Datelog extends BaseEntity {
 
     private String location;
 
+    private String date;
+
     public static Datelog toEntity(CreateDatelogReq createRecordReq, User user, String imgUrl) {
         return Datelog.builder()
                 .diary(createRecordReq.diary())
@@ -36,6 +38,7 @@ public class Datelog extends BaseEntity {
                 .title(createRecordReq.title())
                 .image(imgUrl)
                 .location(createRecordReq.location())
+                .date(createRecordReq.date())
                 .build();
     }
 }

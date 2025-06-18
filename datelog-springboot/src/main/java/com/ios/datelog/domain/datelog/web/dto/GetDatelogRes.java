@@ -1,6 +1,6 @@
-package com.ios.datelog.domain.record.web.dto;
+package com.ios.datelog.domain.datelog.web.dto;
 
-import com.ios.datelog.domain.record.entity.Datelog;
+import com.ios.datelog.domain.datelog.entity.Datelog;
 
 public record GetDatelogRes(
         Long id,

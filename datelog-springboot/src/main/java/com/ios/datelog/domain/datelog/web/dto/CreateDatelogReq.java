@@ -1,4 +1,4 @@
-package com.ios.datelog.domain.record.web.dto;
+package com.ios.datelog.domain.datelog.web.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.web.multipart.MultipartFile;

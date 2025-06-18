@@ -1,4 +1,4 @@
-package com.ios.datelog.domain.record.exception;
+package com.ios.datelog.domain.datelog.exception;
 
 import com.ios.datelog.global.exception.BaseException;
 

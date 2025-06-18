@@ -7,9 +7,4 @@ public enum Tag {
     FOCUS,
     CULTURE_ART,
     ACTIVITY,
-    FOOD,
-    NATURE,
-    HISTORY,
-    SPORTS,
-    SHOPPING
 }

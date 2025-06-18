@@ -8,46 +8,53 @@
 import SwiftUI
 import PhotosUI
 
+
+
 // MARK: - 새로운 데이트 로그 입력 뷰
 struct AddDateLogView: View {
     @Binding var isPresented: Bool
-    var onSave: (DateLogEntry) -> Void
+    var onSuccess: () -> Void     // 저장 성공시 호출
 
-    // 입력 상태
-    @State private var title: String = ""
-    @State private var entryDate: Date = Date()
-    @State private var locationName: String = ""
-    @State private var locationAddress: String = ""
-    @State private var courses: [CourseItem] = []
-    @State private var memo: String = ""
-
-    // 사진 피커
+    // 서버 DTO에 맞는 상태만!
     @State private var photoItem: PhotosPickerItem? = nil
     @State private var imageData: Data? = nil
+
+    @State private var name: String = ""           // 장소명
+    @State private var entryDate: Date = Date()    // 날짜
+    @State private var location: String = ""       // 상세주소(옵션)
+    @State private var title: String = ""          // 제목
+    @State private var diary: String = ""          // 메모(옵션)
+
+    @State private var isUploading = false
+    @State private var errorMessage: String?
 
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    // 이미지 선택
+                VStack(alignment: .leading, spacing: 24) {
+                    // 1. 이미지
                     PhotosPicker(selection: $photoItem, matching: .images) {
-                        Group {
-                            if let data = imageData, let uiImage = UIImage(data: data) {
-                                Image(uiImage: uiImage)
+                        ZStack {
+                            if let data = imageData, let img = UIImage(data: data) {
+                                Image(uiImage: img)
                                     .resizable()
                                     .scaledToFill()
                             } else {
-                                ZStack {
-                                    Rectangle()
-                                        .fill(Color(.systemGray5))
-                                    Text("사진 선택")
+                                VStack {
+                                    Image(systemName: "photo.on.rectangle")
+                                        .font(.system(size: 36))
+                                        .foregroundColor(.gray.opacity(0.5))
+                                    Text("사진 추가")
                                         .foregroundColor(.secondary)
+                                        .font(.footnote)
                                 }
                             }
                         }
                         .frame(height: 200)
-                        .clipped()
+                        .frame(maxWidth: .infinity)
+                        .background(Color(.systemGray6))
                         .cornerRadius(12)
+                        .clipped()
                     }
                     .onChange(of: photoItem) { newItem in
                         Task {
@@ -57,65 +64,51 @@ struct AddDateLogView: View {
                         }
                     }
 
-                    // 제목
+                    // 2. 장소명 (필수)
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("제목")
-                            .font(.headline)
-                        TextField("제목을 입력하세요", text: $title)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                        Text("장소명*").font(.headline)
+                        TextField("예: 이태원 식당", text: $name)
+                            .textFieldStyle(.roundedBorder)
                     }
 
-                    // 날짜 선택
+                    // 3. 날짜 (필수)
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("날짜")
-                            .font(.headline)
+                        Text("날짜*").font(.headline)
                         DatePicker("", selection: $entryDate, displayedComponents: .date)
                             .datePickerStyle(.compact)
+                            .labelsHidden()
                     }
 
-                    // 위치 입력
+                    // 4. 상세주소 (옵션)
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("위치")
-                            .font(.headline)
-                        HStack { Image(systemName: "mappin.and.ellipse") }
-                        TextField("장소 이름", text: $locationName)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                        TextField("상세 주소", text: $locationAddress)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                        Text("상세 주소").font(.headline)
+                        TextField("예: 서울 용산구 이태원로", text: $location)
+                            .textFieldStyle(.roundedBorder)
                     }
 
-                    // 데이트 코스
+                    // 5. 제목 (필수)
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("데이트 코스")
-                            .font(.headline)
-                        ForEach($courses) { $item in
-                            HStack(spacing: 12) {
-                                Image(systemName: item.iconName)
-                                    .frame(width: 24, height: 24)
-                                TextField("코스 내용을 입력하세요", text: $item.title)
+                        Text("제목*").font(.headline)
+                        TextField("제목을 입력하세요", text: $title)
+                            .textFieldStyle(.roundedBorder)
+                    }
+
+                    // 6. 메모 (옵션)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("메모").font(.headline)
+                        ZStack(alignment: .topLeading) {
+                            TextEditor(text: $diary)
+                                .frame(height: 80)
+                                .cornerRadius(8)
+                                .overlay(RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.4), lineWidth: 1))
+                            if diary.isEmpty {
+                                Text("기억하고 싶은 내용을 적어보세요")
+                                    .foregroundColor(.gray)
+                                    .padding(.top, 8).padding(.horizontal, 6)
+                                    .font(.footnote)
                             }
                         }
-                        Button(action: {
-                            courses.append(CourseItem())
-                        }) {
-                            HStack {
-                                Image(systemName: "plus.circle")
-                                Text("코스 추가")
-                            }
-                            .foregroundColor(.blue)
-                        }
-                    }
-
-                    // 메모
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("메모")
-                            .font(.headline)
-                        TextEditor(text: $memo)
-                            .frame(height: 100)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.gray.opacity(0.4), lineWidth: 1)
-                            )
                     }
                 }
                 .padding()
@@ -123,35 +116,42 @@ struct AddDateLogView: View {
             }
             .navigationBarTitle("데이트 로그 추가", displayMode: .inline)
             .navigationBarItems(
-                leading: Button("취소") {
-                    isPresented = false
-                },
-                trailing: Button("저장") {
-                    // 저장 처리
-                    let entry = DateLogEntry(
-                        title: title,
-                        description: memo,
-                        imageName: imageData != nil ? "" : "sample01", // placeholder
-                        date: DateFormatter.localizedString(from: entryDate, dateStyle: .short, timeStyle: .none)
-                    )
-                    onSave(entry)
-                    isPresented = false
-                }.disabled(title.isEmpty || courses.isEmpty)
+                leading: Button("취소") { isPresented = false },
+                trailing: Button(isUploading ? "저장중..." : "저장") {
+                    Task {
+                        isUploading = true
+                        defer { isUploading = false }
+                        do {
+                            try await APIManager.shared.createDateLog(
+                                imageData: imageData,
+                                name: name,
+                                date: DateFormatter.yyyyMMdd.string(from: entryDate),
+                                location: location,
+                                title: title,
+                                diary: diary
+                            )
+                            isPresented = false
+                            onSuccess()
+                        } catch {
+                            errorMessage = "등록 실패: \(error.localizedDescription)"
+                        }
+                    }
+                }
+                .disabled(name.isEmpty || title.isEmpty || isUploading)
             )
+            .alert("등록 실패", isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
+                Button("확인", role: .cancel) { errorMessage = nil }
+            } message: {
+                Text(errorMessage ?? "")
+            }
         }
     }
 }
 
-// MARK: - CourseItem
-struct CourseItem: Identifiable {
-    let id = UUID()
-    var iconName: String = "mappin.and.ellipse"
-    var title: String = ""
-}
-
-// MARK: - Preview
-struct AddDateLogView_Previews: PreviewProvider {
-    static var previews: some View {
-        AddDateLogView(isPresented: .constant(true)) { _ in }
-    }
+extension DateFormatter {
+    static let yyyyMMdd: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        return f
+    }()
 }

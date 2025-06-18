@@ -46,7 +46,7 @@ private var topBanner: some View {
 // MARK: - 뷰
 struct ContentView: View {
     @Environment(\.dismiss) private var dismiss
-    
+    @State private var showAddSheet = false
     var body: some View {
         NavigationStack {
             TabView {
@@ -74,7 +74,17 @@ struct ContentView: View {
                         .font(.system(size: 20, weight: .semibold))
                         .foregroundColor(.black)
                 }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: { showAddSheet = true }) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 20, weight: .semibold))
+                    }
+                }
             }
+            .sheet(isPresented: $showAddSheet) {
+                            AddDateLogView(isPresented: $showAddSheet) {
+                            }
+                        }
             .navigationBarTitleDisplayMode(.inline)
             .background(Color.white.ignoresSafeArea())
             .navigationBarBackButtonHidden(true)

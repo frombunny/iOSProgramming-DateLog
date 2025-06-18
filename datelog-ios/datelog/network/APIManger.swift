@@ -147,7 +147,7 @@ actor APIManager {
             return decoded.data
         }
     
-        
+        // 리뷰 작성 API
         func createReview(placeId: String, content: String) async throws {
             guard let url = URL(string: "http://localhost:8080/api/review/\(placeId)") else {
                 throw URLError(.badURL)
@@ -166,8 +166,6 @@ actor APIManager {
                 throw URLError(.badServerResponse)
         }
     }
-
-
         
         // 추천 장소 조회 API
         func fetchRecommendedPlaces() async throws -> [PlaceItem] {
@@ -191,13 +189,97 @@ actor APIManager {
                 return detail
             } else {
                 throw URLError(.badServerResponse)
+            }
         }
-            
-        // 리뷰 작성 API
+    
+        // 필터링 검색 API
+        func fetchPlaces(tagKor: String?, keyword: String) async throws -> [PlaceItem] {
+                var urlStr = "http://localhost:8080/api/place?"
+                var query = [String]()
+                if let tagKor = tagKor, tagKor != "전체", let tagEnum = tagEnumString(from: tagKor) {
+                    query.append("tag=\(tagEnum)")
+                }
+                if !keyword.isEmpty {
+                    query.append("keyword=\(keyword.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")")
+                }
+                urlStr += query.joined(separator: "&")
+                    
+                guard let url = URL(string: urlStr) else { throw URLError(.badURL) }
+                let (data, _) = try await URLSession.shared.data(from: url)
+                let decoded = try JSONDecoder().decode(PlaceListResponse.self, from: data)
+                return decoded.data
+        }
         
+        // 데이트로그 가져오기 API
+        func fetchAllDateLogs() async throws -> [DateLogItem] {
+            let req = try makeRequest(path: "/api/datelog/all")
+            print(req)
+            let (data, _) = try await URLSession.shared.data(for: req)
+            let decoded = try JSONDecoder().decode(DateLogListResponse.self, from: data)
+            print(decoded)
+            return decoded.data
+        }
+
+    
+        // 데이트로그 작성 API
+        func createDateLog(imageData: Data?, name: String, date: String, location: String, title: String, diary: String) async throws {
+            let boundary = UUID().uuidString
+            var req = URLRequest(url: URL(string: "http://localhost:8080/api/datelog")!)
+            req.httpMethod = "POST"
+            req.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+            if let token = UserDefaults.standard.string(forKey: "jwtToken") {
+                req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            }
+        
+            var body = Data()
+        
+            // 1. 이미지
+            if let imageData = imageData {
+                body.append("--\(boundary)\r\n".data(using: .utf8)!)
+                body.append("Content-Disposition: form-data; name=\"image\"; filename=\"photo.jpg\"\r\n".data(using: .utf8)!)
+                body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+                body.append(imageData)
+                body.append("\r\n".data(using: .utf8)!)
+            }
+        
+            // 2. 텍스트 필드들
+            let params: [(String, String)] = [
+                ("name", name),
+                ("date", date),
+                ("location", location),
+                ("title", title),
+                ("diary", diary)
+            ]
+            for (key, value) in params {
+                body.append("--\(boundary)\r\n".data(using: .utf8)!)
+                body.append("Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n".data(using: .utf8)!)
+                body.append("\(value)\r\n".data(using: .utf8)!)
+            }
+        
+            body.append("--\(boundary)--\r\n".data(using: .utf8)!)
+            req.httpBody = body
+        
+            let (data, response) = try await URLSession.shared.data(for: req)
+            guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+                throw URLError(.badServerResponse)
+            }
+        }
     }
 
+            
+func tagEnumString(from kor: String) -> String? {
+    switch kor {
+        case "로맨틱":      return "ROMANTIC"
+        case "어드벤처":    return "ADVENTURE"
+        case "힐링":        return "HEALING"
+        case "집중":        return "FOCUS"
+        case "문화·예술":   return "CULTURE_ART"
+        case "액티비티":    return "ACTIVITY"
+        default:            return nil
+    }
 }
+
+        
 
 // Data 편의 확장
 private extension Data {

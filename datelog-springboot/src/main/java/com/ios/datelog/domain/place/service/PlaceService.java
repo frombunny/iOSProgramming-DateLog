@@ -3,6 +3,7 @@ package com.ios.datelog.domain.place.service;
 import com.ios.datelog.domain.place.entity.Place;
 import com.ios.datelog.domain.place.entity.enums.Tag;
 import com.ios.datelog.domain.place.repository.PlaceRepository;
+import com.ios.datelog.domain.place.web.dto.GetPlaceDetailRes;
 import com.ios.datelog.domain.place.web.dto.GetPlaceRes;
 import com.ios.datelog.domain.review.entity.Review;
 import com.ios.datelog.domain.review.repository.ReviewRepository;
@@ -25,7 +26,7 @@ public class PlaceService {
     public List<GetPlaceRes> getPlaceList(Tag tag, String keyword){
         return placeRepository.findAllByTagAndNameContainingIgnoreCase(tag, keyword)
                 .stream()
-                .map(GetPlaceRes::of)
+                .map(GetPlaceRes::from)
                 .collect(Collectors.toList());
     }
 
@@ -38,13 +39,18 @@ public class PlaceService {
                 .toList();
 
         return placeList.stream()
-                .map(GetPlaceRes::of)
+                .map(GetPlaceRes::from)
                 .collect(Collectors.toList());
+    }
+
+    public GetPlaceDetailRes getPlace(Long placeId){
+        Place place = placeRepository.getPlaceById(placeId);
+        return GetPlaceDetailRes.from(place);
     }
 
     public List<GetPlaceRes> getRandomPlaceList(){
         return placeRepository.findRandomFivePlaces().stream()
-                .map(GetPlaceRes::of)
+                .map(GetPlaceRes::from)
                 .collect(Collectors.toList());
     }
 }

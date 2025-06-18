@@ -26,6 +26,7 @@ public class ReviewService {
         Place place = placeRepository.getPlaceById(placeId);
 
         Review review = Review.toEntity(user, place, createReviewReq);
+        place.addReview(review);
         reviewRepository.save(review);
     }
 }

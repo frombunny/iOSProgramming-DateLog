@@ -8,7 +8,7 @@ public record GetDatelogRes(
         String title,
         String diary
 ) {
-    public static GetDatelogRes of(Datelog datelog) {
+    public static GetDatelogRes from(Datelog datelog) {
         return new GetDatelogRes(datelog.getId(), datelog.getImage(), datelog.getTitle(), datelog.getDiary());
     }
 }

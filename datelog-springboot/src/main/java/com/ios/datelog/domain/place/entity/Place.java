@@ -30,4 +30,12 @@ public class Place extends BaseEntity {
     private Tag tag;
 
     private String image;
+
+    @OneToMany(mappedBy = "place", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Review> reviews = new ArrayList<>();
+
+    public void addReview(Review review) {
+        this.reviews.add(review);
+        review.setPlace(this);
+    }
 }

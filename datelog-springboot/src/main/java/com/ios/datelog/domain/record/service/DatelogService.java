@@ -38,14 +38,14 @@ public class DatelogService {
         Datelog datelog = datelogRepository.getDatelogById(datelogId);
 
         if(datelog.getUser()!=user) throw new CanNotAccessException();
-        return GetDatelogRes.of(datelog);
+        return GetDatelogRes.from(datelog);
     }
 
     public List<GetDatelogRes> getAllDatelogs(UserPrincipal userPrincipal) {
         User user = userRepository.getUserById(userPrincipal.getId());
 
         return datelogRepository.findAllByUser(user).stream()
-                .map(GetDatelogRes::of)
+                .map(GetDatelogRes::from)
                 .collect(Collectors.toList());
     }
 }

@@ -8,7 +8,7 @@ public record GetPlaceRes(
         String name,
         String content
 ) {
-    public static GetPlaceRes of(Place place) {
+    public static GetPlaceRes from(Place place) {
         return new GetPlaceRes(place.getId(), place.getImage(), place.getName(), place.getContent());
     }
 }

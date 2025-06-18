@@ -10,6 +10,7 @@ import static com.ios.datelog.global.constant.StaticValue.*;
 @AllArgsConstructor
 public enum UserErrorCode implements BaseResponseCode {
     USER_NOT_FOUND_404("USER_NOT_FOUND_404", NOT_FOUND, "존재하지 않는 사용자입니다."),
+    CAN_NOT_ACCESS_403("CAN_NOT_ACCESS_403", FORBIDDEN, "접근 권한이 없습니다."),
     USER_ALREADY_EXIST_409("USER_ALREADY_EXIST_409", CONFLICT, "이미 존재하는 사용자입니다.");
 
     private final String code;

@@ -6,19 +6,33 @@
 //
 // 로그인 화면
 
+//
+//  LoginView.swift
+//  datelog
+//
+//  Created by 임혜정 on 6/15/25.
+//
+
 import SwiftUI
 
-// MARK: - 로그인 화면
 struct LoginView: View {
-    // 입력
+    // MARK: – Input
     @State private var email = ""
     @State private var password = ""
 
-    // 네비게이션
+    // MARK: – State
+    @State private var isLoading = false
+    @State private var errorMessage: String?
     @State private var showSignUp = false
+    @State private var navigateToHome = false
+
+    // MARK: – Environment
     @Environment(\.dismiss) private var dismiss
 
-    var disableLogin: Bool { email.isEmpty || password.isEmpty }
+    // MARK: – Form validation
+    private var canSubmit: Bool {
+        !email.isEmpty && !password.isEmpty && !isLoading
+    }
 
     var body: some View {
         NavigationStack {
@@ -27,37 +41,39 @@ struct LoginView: View {
                     VStack {
                         Spacer(minLength: geo.size.height * 0.1)
 
-                        // ── 카드 컨테이너 ────────────────────────────────
                         VStack(spacing: 28) {
-                            // 타이틀
                             Text("LOGIN")
                                 .font(.system(size: 30, weight: .medium))
                                 .foregroundColor(.black)
 
-                            // 이메일
                             IconField(sf: "envelope", placeholder: "이메일",
                                       text: $email, isSecure: false)
-
-                            // 비밀번호
                             IconField(sf: "lock", placeholder: "비밀번호",
                                       text: $password, isSecure: true)
 
-                            // 로그인 버튼
                             Button {
-                                // TODO: 로그인 API
+                                performLogin()
                             } label: {
-                                Text("Sign In")
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 14)
-                                    .background(disableLogin ? Color.black.opacity(0.15)
-                                                             : Color.black)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(12)
+                                if isLoading {
+                                    ProgressView()
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 14)
+                                        .background(Color.gray.opacity(0.3))
+                                        .cornerRadius(12)
+                                } else {
+                                    Text("Sign In")
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 14)
+                                        .background(canSubmit ? Color.black : Color.black.opacity(0.15))
+                                        .foregroundColor(.white)
+                                        .cornerRadius(12)
+                                }
                             }
-                            .disabled(disableLogin)
+                            .disabled(!canSubmit)
 
-                            // 회원가입
-                            Button { showSignUp = true } label: {
+                            Button {
+                                showSignUp = true
+                            } label: {
                                 Text("회원가입")
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 14)
@@ -77,13 +93,26 @@ struct LoginView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.horizontal, 24)
-                    .navigationDestination(isPresented: $showSignUp) {
-                        SignUpView()
-                    }
+                    // 숨겨진 네비링크
+                    .background(
+                        Group {
+                            NavigationLink(
+                                destination: ContentView(),
+                                isActive: $navigateToHome,
+                                label: { EmptyView() }
+                            )
+                            NavigationLink(
+                                destination: SignUpView(),
+                                isActive: $showSignUp,
+                                label: { EmptyView() }
+                            )
+                        }
+                    )
                 }
             }
             .background(Color.white.ignoresSafeArea())
             .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden(true)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button { dismiss() } label: {
@@ -93,11 +122,42 @@ struct LoginView: View {
                     }
                 }
             }
+            // 에러 얼럿
+            .alert("로그인 실패", isPresented: Binding<Bool>(
+                get: { errorMessage != nil },
+                set: { if !$0 { errorMessage = nil } }
+            )) {
+                Button("확인", role: .cancel) { errorMessage = nil }
+            } message: {
+                Text(errorMessage ?? "")
+            }
+        }
+    }
+
+    // MARK: – Networking
+    private func performLogin() {
+        isLoading = true
+        errorMessage = nil
+
+        Task {
+            do {
+                let token = try await APIManager.shared.login(
+                    email: email,
+                    password: password
+                )
+                // 토큰 저장
+                UserDefaults.standard.set(token, forKey: "jwtToken")
+                // 화면 전환
+                navigateToHome = true
+            } catch {
+                errorMessage = (error as NSError).localizedDescription
+            }
+            isLoading = false
         }
     }
 }
 
-// MARK: - 아이콘 + 입력 필드 공통 컴포넌트
+// MARK: – Icon + Field Component
 private struct IconField: View {
     let sf: String
     let placeholder: String
@@ -115,7 +175,7 @@ private struct IconField: View {
                     SecureField(placeholder, text: $text)
                 } else {
                     TextField(placeholder, text: $text)
-                        .keyboardType(sf == "envelope" ? .emailAddress : .default)
+                        .keyboardType(.emailAddress)
                 }
             }
             .textInputAutocapitalization(.never)

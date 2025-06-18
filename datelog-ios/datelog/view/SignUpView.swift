@@ -3,25 +3,35 @@
 //  datelog
 //
 //  Created by 임혜정 on 6/15/25.
-// 회원가입 화면
+//
 
 import SwiftUI
 import PhotosUI
 
 struct SignUpView: View {
     @Environment(\.dismiss) private var dismiss
-    
-    // 입력
+
+    // MARK: - Input fields
     @State private var nickname = ""
     @State private var email    = ""
     @State private var password = ""
     
-    // 이미지
+    // MARK: - Avatar image picker
     @State private var avatarItem: PhotosPickerItem?
     @State private var avatarImage: Image?
     
-    var formValid: Bool {
-        !nickname.isEmpty && !email.isEmpty && !password.isEmpty && avatarImage != nil
+    // MARK: - Loading & Error state
+    @State private var isLoading = false
+    @State private var errorMessage: String?
+    @State private var navigateToLogin = false
+    
+    // MARK: - Form validation
+    private var formValid: Bool {
+        !nickname.isEmpty &&
+        !email.isEmpty &&
+        !password.isEmpty &&
+        avatarImage != nil &&
+        !isLoading
     }
     
     var body: some View {
@@ -32,13 +42,16 @@ struct SignUpView: View {
                     .padding(.top, 40)
                     .foregroundColor(.black)
                 
-                // ── 프로필 이미지 ──────────────────
+                // Profile image preview
                 ZStack {
                     if let img = avatarImage {
-                        img.resizable().scaledToFill()
+                        img
+                            .resizable()
+                            .scaledToFill()
                     } else {
                         Image(systemName: "person")
-                            .resizable().scaledToFit()
+                            .resizable()
+                            .scaledToFit()
                             .padding(30)
                             .foregroundColor(.black)
                     }
@@ -48,9 +61,11 @@ struct SignUpView: View {
                 .clipShape(Circle())
                 .overlay(Circle().stroke(Color.black, lineWidth: 1))
                 
+                // Photo picker button
                 PhotosPicker(selection: $avatarItem, matching: .images) {
                     Text(avatarImage == nil ? "이미지 선택" : "다른 이미지 선택")
-                        .font(.footnote).foregroundColor(.black)
+                        .font(.footnote)
+                        .foregroundColor(.black)
                 }
                 .onChange(of: avatarItem) { newItem in
                     guard let newItem else { return }
@@ -62,33 +77,60 @@ struct SignUpView: View {
                     }
                 }
                 
-                // ── 닉네임 ────────────────────────
+                // Nickname field
                 PaddedField(placeholder: "닉네임", text: $nickname)
                 
-                // ── 아이디(이메일) ────────────────
+                // Email field
                 PaddedField(placeholder: "이메일", text: $email, keyboard: .emailAddress)
                 
-                // ── 비밀번호 ─────────────────────
+                // Password field
                 PaddedSecure(placeholder: "비밀번호", text: $password)
                 
-                // ── 회원가입 버튼 ────────────────
+                // Sign up button
                 Button {
-                    // TODO: 회원가입 로직
+                    signUp()
                 } label: {
-                    Text("회원가입")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(formValid ? Color.black : Color.gray.opacity(0.3))
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
+                    if isLoading {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle())
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.gray.opacity(0.3))
+                            .cornerRadius(10)
+                    } else {
+                        Text("회원가입")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(formValid ? Color.black : Color.gray.opacity(0.3))
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                    }
                 }
                 .disabled(!formValid)
+                
+                Button{
+                    navigateToLogin = true
+                }label:{
+                    Text("로그인")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.black)     // 항상 검은색
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                }
                 
                 Spacer(minLength: 40)
             }
             .padding(.horizontal, 24)
         }
         .background(Color.white)
+        .background(
+          NavigationLink(
+            destination: LoginView(),
+            isActive: $navigateToLogin,
+            label: { EmptyView() }
+          )
+        )
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
@@ -99,9 +141,47 @@ struct SignUpView: View {
                 }
             }
         }
+        // Error alert
+        .alert("회원가입 실패", isPresented: Binding<Bool>(
+            get: { errorMessage != nil },
+            set: { if !$0 { errorMessage = nil } }
+        )) {
+            Button("확인", role: .cancel) { errorMessage = nil }
+        } message: {
+            Text(errorMessage ?? "")
+        }
+    }
+    
+    // MARK: - Networking
+    private func signUp() {
+        isLoading = true
+            errorMessage = nil
+            Task {
+                do {
+                    try await APIManager.shared.signUp(
+                        nickname: nickname,
+                        email: email,
+                        password: password,
+                        profileImageItem:avatarItem
+                    )
+                    // 네트워크 요청 성공 → 네비게이션 플래그를 true 로
+                    navigateToLogin = true
+                } catch {
+                    errorMessage = (error as NSError).localizedDescription
+                }
+                isLoading = false
+            }
     }
 }
 
-#Preview("SignUp") {
+struct SignUpView_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationStack {
+            SignUpView()
+        }
+    }
+}
+
+#Preview("SignUpView") {
     NavigationStack { SignUpView() }
 }

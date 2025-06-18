@@ -15,19 +15,6 @@ struct Place: Identifiable {
     let imageName: String   // Assets.xcassets 에 넣은 임시 이미지 이름
 }
 
-let sampleRecommended: [Place] = [
-    .init(title: "한강 뷰 카페", description: "탁 트인 강변 야경을 보며 커피 한 잔", imageName: "sample01"),
-    .init(title: "북촌 한옥길", description: "조용한 골목 산책 후 전통찻집", imageName: "sample02"),
-    .init(title: "야외 재즈 공연", description: "감성 충만 라이브 재즈 나이트", imageName: "sample03")
-]
-
-let sampleVisited: [Place] = [
-    .init(title: "서울숲 피크닉", description: "도심 속 잔디밭에서 간단히 브런치", imageName: "sample04"),
-    .init(title: "롯데타워 전망대", description: "서울 야경을 한눈에 담다", imageName: "sample05"),
-    .init(title: "양재 꽃 시장", description: "향긋한 꽃길 데이트", imageName: "sample06"),
-    .init(title: "남산 케이블카", description: "서울 시티라이트 파노라마", imageName: "sample07")
-]
-
 // MARK: - 뷰
 struct ContentView: View {
   var body: some View {
@@ -54,73 +41,104 @@ struct ContentView: View {
 }
 
 struct HomeView: View {
-    // 검색어 바인딩
+    @State private var recommended: [PlaceItem] = []
+    @State private var recent: [PlaceItem] = []
+    @State private var isLoading = false
+    @State private var errorMessage: String?
+
     @State private var keyword: String = ""
-    
+
     var body: some View {
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    // 페이지 타이틀
+                VStack(alignment: .leading, spacing: 16) { // spacing 넉넉히
                     Text("오늘의 데이트 추천")
                         .font(.system(size: 26, weight: .semibold))
-                        .padding(.top, 4)
-                    
-                    // 검색창
+                        .padding(.top, 8)
+
                     SearchBar(text: $keyword)
-                    
-                    // 추천 섹션
-                    Text("당신을 위한 추천")
-                        .font(.headline)
-                        .padding(.horizontal, 4)
-                    
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 12) {
-                            ForEach(sampleRecommended) { place in
-                                NavigationLink {
-                                    // 여기에 PlaceDetailView 초기화
-                                    PlaceDetailView(
-                                        imageName: place.imageName,
-                                        title: place.title,
-                                        description: place.description,
-                                        locationName: place.title,           // 임시로 제목을 위치명으로
-                                        locationAddress: "서울시 어딘가"
-                                    )
-                                } label: {
-                                    PlaceCard(place: place)
-                                        .frame(width: 184, height: 213)
+                        .padding(.bottom, 8)
+
+                    Group {
+                        Text("당신을 위한 추천")
+                            .font(.headline)
+                            .padding(.horizontal, 4)
+
+                        if isLoading && recommended.isEmpty {
+                            ProgressView().frame(maxWidth: .infinity, alignment: .center)
+                        } else {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 16) { // 카드 간 간격 여유 있게
+                                    ForEach(recommended) { place in
+                                        NavigationLink {
+                                            PlaceDetailView(
+                                                imageName: place.image,
+                                                title: place.title,
+                                                description: place.description,
+                                                locationName: place.title,
+                                                locationAddress: ""
+                                            )
+                                        } label: {
+                                            PlaceCard(
+                                                title: place.title,
+                                                description: place.description,
+                                                imageURL: place.imageURL
+                                            )
+                                            .frame(width: 184, height: 213) // 카드 크기 고정
+                                        }
+                                    }
                                 }
+                                .padding(.horizontal, 16)
                             }
                         }
-                        .padding(.horizontal, 16)
                     }
-                    
-                    // 최근 방문 섹션
-                    Text("최근 방문 데이트 장소")
-                        .font(.headline)
-                        .padding(.horizontal, 4)
-                    
-                    LazyVGrid(
-                        columns: Array(repeating: .init(.flexible(), spacing: 8), count: 2),
-                        spacing: 12
-                    ) {
-                        ForEach(sampleVisited) { place in
-                            NavigationLink {
-                                PlaceDetailView(
-                                    imageName: place.imageName,
-                                    title: place.title,
-                                    description: place.description,
-                                    locationName: place.title,
-                                    locationAddress: "서울시 어딘가"
-                                )
-                            } label: {
-                                PlaceCard(place: place)
-                                    .frame(height: 213)
+
+                    Group {
+                        Text("최근 방문 데이트 장소")
+                            .font(.headline)
+                            .padding(.horizontal, 4)
+
+                        if isLoading && recent.isEmpty {
+                            ProgressView().frame(maxWidth: .infinity, alignment: .center)
+                        } else {
+                            ScrollView(.horizontal, showsIndicators: false) { // 여기서 가로 스크롤로 변경!
+                                HStack(spacing: 16) {
+                                    ForEach(recent) { place in
+                                        NavigationLink {
+                                            PlaceDetailView(
+                                                imageName: place.image,
+                                                title: place.title,
+                                                description: place.description,
+                                                locationName: place.title,
+                                                locationAddress: ""
+                                            )
+                                        } label: {
+                                            PlaceCard(
+                                                title: place.title,
+                                                description: place.description,
+                                                imageURL: place.imageURL
+                                            )
+                                            .frame(width: 184, height: 213) // 동일하게 고정
+                                        }
+                                    }
+                                }
+                                .padding(.horizontal, 16)
                             }
                         }
                     }
                 }
-                .padding(.horizontal, 16)
+                .padding(.horizontal, 12) // 전체 좌우 마진
                 .padding(.bottom, 80)
+                .alert("데이터 로드 실패", isPresented: Binding<Bool>(
+                    get: { errorMessage != nil },
+                    set: { if !$0 { errorMessage = nil } }
+                )) {
+                    Button("확인", role: .cancel) { errorMessage = nil }
+                } message: {
+                    Text(errorMessage ?? "")
+                }
+                .task {
+                    await loadPlaces()
+                }
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -132,27 +150,58 @@ struct HomeView: View {
                 }
             }
         }
-    
-    // MARK: - 서브뷰
+
+    private func loadPlaces() async {
+        isLoading = true
+        do {
+            async let rec = APIManager.shared.fetchRecommendedPlaces()
+            async let recnt = APIManager.shared.fetchRecentPlaces()
+            let (r1, r2) = try await (rec, recnt)
+            recommended = r1
+            recent      = r2
+        } catch {
+            errorMessage = (error as NSError).localizedDescription
+        }
+        isLoading = false
+    }
+
+    // MARK: - PlaceCard 재사용 가능한 뷰
     struct PlaceCard: View {
-        let place: Place
-        
+        let title: String
+        let description: String
+        let imageURL: URL?
+
         var body: some View {
             VStack(alignment: .leading, spacing: 6) {
-                Image(place.imageName)
-                    .resizable()
-                    .scaledToFill()
+                if let url = imageURL {
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .empty:
+                            Color.gray.opacity(0.1)
+                        case .success(let img):
+                            img.resizable().scaledToFill()
+                        case .failure:
+                            Color.red
+                        @unknown default: EmptyView()
+                        }
+                    }
                     .frame(maxWidth: .infinity, maxHeight: 128)
                     .clipped()
                     .cornerRadius(8)
-                
-                Text(place.title)
+                } else {
+                    Color.gray.opacity(0.1)
+                        .frame(maxWidth: .infinity, maxHeight: 128)
+                        .cornerRadius(8)
+                }
+
+                Text(title)
                     .font(.system(size: 15, weight: .semibold))
                     .lineLimit(1)
-                
-                Text(place.description)
+
+                Text(description)
                     .font(.system(size: 11))
                     .foregroundColor(.secondary)
+                    .multilineTextAlignment(.leading)
                     .lineLimit(2)
             }
             .padding(8)
@@ -165,7 +214,7 @@ struct HomeView: View {
 
 struct SearchBar: View {
     @Binding var text: String
-    
+
     var body: some View {
         HStack {
             Image(systemName: "magnifyingglass")

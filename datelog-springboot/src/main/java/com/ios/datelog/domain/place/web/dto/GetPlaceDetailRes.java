@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public record GetPlaceDetailRes(
+        Long id,
         String name,
         String content,
         String location,
@@ -16,6 +17,7 @@ public record GetPlaceDetailRes(
 ) {
     public static GetPlaceDetailRes from(Place place) {
         return new GetPlaceDetailRes(
+                place.getId(),
                 place.getName(),
                 place.getContent(),
                 place.getLocation(),

@@ -16,6 +16,7 @@ struct Category: Identifiable, Hashable {
 }
 
 let browseCategories: [Category] = [
+    .init(name: "전체"),
     .init(name: "로맨틱"),
     .init(name: "어드벤처"),
     .init(name: "힐링"),
@@ -192,6 +193,23 @@ struct BrowseView: View {
         }
     }
 }
+
+struct SearchBar: View {
+    @Binding var text: String
+
+    var body: some View {
+        HStack {
+            Image(systemName: "magnifyingglass")
+                .foregroundColor(.secondary)
+            TextField("키워드를 검색해보세요", text: $text)
+                .textInputAutocapitalization(.never)
+        }
+        .padding(10)
+        .background(Color(.systemGray6))
+        .cornerRadius(10)
+    }
+}
+
 
 // MARK: - 미리보기
 #Preview("Browse") {

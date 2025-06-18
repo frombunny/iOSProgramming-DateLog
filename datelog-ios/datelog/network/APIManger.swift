@@ -135,6 +135,7 @@ actor APIManager {
             return req
         }
 
+        // 최근 방문 장소 조회 API
         func fetchRecentPlaces() async throws -> [PlaceItem] {
             let req = try makeRequest(path: "/api/place/recent")
             let (data, response) = try await URLSession.shared.data(for: req)
@@ -145,8 +146,30 @@ actor APIManager {
             let decoded = try JSONDecoder().decode(APIResponse<[PlaceItem]>.self, from: data)
             return decoded.data
         }
+    
+        
+        func createReview(placeId: String, content: String) async throws {
+            guard let url = URL(string: "http://localhost:8080/api/review/\(placeId)") else {
+                throw URLError(.badURL)
+            }
+            var req = URLRequest(url: url)
+            req.httpMethod = "POST"
+            req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            if let token = UserDefaults.standard.string(forKey: "jwtToken") {
+                req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            }
+            let body: [String: Any] = ["content": content]
+            req.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+            let (_, res) = try await URLSession.shared.data(for: req)
+            guard let httpRes = res as? HTTPURLResponse, (200...299).contains(httpRes.statusCode) else {
+                throw URLError(.badServerResponse)
+        }
+    }
+
 
         
+        // 추천 장소 조회 API
         func fetchRecommendedPlaces() async throws -> [PlaceItem] {
             let req = try makeRequest(path: "/api/place/recommend")
             let (data, response) = try await URLSession.shared.data(for: req)
@@ -157,6 +180,23 @@ actor APIManager {
             let decoded = try JSONDecoder().decode(APIResponse<[PlaceItem]>.self, from: data)
             return decoded.data
         }
+    
+        // 장소 상세 조회 API
+        func fetchPlaceDetail(id: String) async throws -> PlaceDetail {
+            let url = URL(string: "http://localhost:8080/api/place/\(id)")!
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let decoded = try JSONDecoder().decode(PlaceDetailResponse.self, from: data)
+            // PlaceDetailResponse에서 data 필드를 꺼내 반환
+            if let detail = decoded.data {
+                return detail
+            } else {
+                throw URLError(.badServerResponse)
+        }
+            
+        // 리뷰 작성 API
+        
+    }
+
 }
 
 // Data 편의 확장

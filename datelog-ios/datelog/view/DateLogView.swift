@@ -90,8 +90,10 @@ struct DateLogView: View {
                     ProgressView().frame(maxWidth: .infinity)
                 } else {
                     ForEach(entries) { entry in
-                        DateLogCard(entry: entry)
-                            .padding(.horizontal, 16)
+                        NavigationLink(destination: DateLogDetailView(datelogId: entry.id)) {
+                            DateLogCard(entry: entry)
+                                .padding(.horizontal, 16)
+                        }
                     }
                 }
             }

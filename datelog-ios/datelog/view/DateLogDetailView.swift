@@ -7,106 +7,186 @@
 
 import SwiftUI
 
-// MARK: - 데이트 로그 상세 모델
-struct DateLogDetail: Identifiable {
-    let id = UUID()
-    let imageName: String       // 상단 이미지
-    let title: String           // 제목
-    let date: String            // yyyy.MM.dd
-    let locationName: String    // 위치명
-    let locationAddress: String // 상세 주소
-    let courses: [DetailCourseItem]   // 데이트 코스 목록
-    let memo: String            // 메모
-}
-
-// MARK: - 상세 코스 아이템
-struct DetailCourseItem: Identifiable {
-    let id = UUID()
-    let iconName: String
+struct DateLogDetailRes: Decodable, Identifiable {
+    let id: Int
+    let image: String
     let title: String
+    let diary: String
 }
 
-// MARK: - 상세 화면 뷰
+struct DateLogDetailResponse: Decodable {
+    let isSuccess: Bool
+    let data: DateLogDetailRes
+}
+
+
+
 struct DateLogDetailView: View {
-    let entry: DateLogDetail
+    let datelogId: Int
     @Environment(\.dismiss) private var dismiss
 
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                // 상단 이미지
-                Image(entry.imageName)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(height: 240)
-                    .clipped()
+    @State private var detail: DateLogDetailRes?
+    @State private var isLoading = true
+    @State private var errorMessage: String?
+    
+    // MARK: - 랜덤 문구 배열 추가
+    private let randomQuotes: [String] = [
+        "오늘의 데이트도 행복한 추억으로 남으셨나요?",
+        "모든 순간이 소중한 기억이 될 거예요.",
+        "사랑은 작은 기록에서 시작됩니다.",
+        "당신의 데이트를 DateLog가 응원합니다!",
+        "오늘도 사랑이 가득한 하루였네요."
+    ]
 
-                // 제목 + 날짜
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(entry.title)
-                        .font(.title2).bold()
-                    Text(entry.date)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+    // MARK: - 랜덤 문구를 선택하는 함수
+    private func getRandomQuote() -> String {
+        return randomQuotes.randomElement() ?? "오늘도 행복한 하루 되세요!"
+    }
+    
+    // MARK: - 랜덤 한마디 배너 뷰
+        private var randomQuoteBanner: some View {
+            HStack(alignment: .center, spacing: 12) {
+                Image(systemName: "heart.fill") // 하트 아이콘으로 변경
+                    .font(.system(size: 26, weight: .bold))
+                    .foregroundColor(Color.red) // 색상도 빨간색으로 변경
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(getRandomQuote()) // 여기서 랜덤 문구를 가져옴
+                        .font(.system(size: 17, weight: .semibold)) // 폰트 사이즈 조정
+                        .foregroundColor(.black)
                 }
-                .padding(.horizontal)
+            }
+            .padding(.vertical, 16)
+            .padding(.horizontal, 20)
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .fill(Color.red.opacity(0.15)) // 배경 색상도 빨간색 계열로 변경
+            )
+            .padding(.horizontal, 20) // 양 옆 패딩 좀 더 넓게
+            .padding(.top, 20) // 위쪽 패딩 추가
+        }
 
-                // 위치 섹션
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("위치")
-                        .font(.headline)
-                    HStack(spacing: 12) {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color(.systemGray6))
-                            Image(systemName: "mappin.and.ellipse")
-                                .foregroundColor(.black)
+    var body: some View {
+        ZStack {
+            // 배경 그라데이션
+            LinearGradient(gradient: Gradient(colors: [Color(.systemGray6), Color.white]), startPoint: .top, endPoint: .bottom)
+                .ignoresSafeArea()
+
+            ScrollView {
+                if isLoading {
+                    VStack(spacing: 12) {
+                        Spacer(minLength: 100)
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle())
+                            .scaleEffect(1.5)
+                        Text("불러오는 중...").font(.subheadline).foregroundColor(.secondary)
+                        Spacer()
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 320)
+                } else if let detail = detail {
+                    VStack(alignment: .leading, spacing: 28) {
+                        // 이미지 카드
+                        if let url = URL(string: detail.image) {
+                            AsyncImage(url: url) { phase in
+                                switch phase {
+                                case .empty:
+                                    ZStack {
+                                        Color(.systemGray5)
+                                        ProgressView()
+                                    }
+                                case .success(let img):
+                                    img
+                                        .resizable()
+                                        .scaledToFill()
+                                        .overlay(
+                                            LinearGradient(
+                                                gradient: Gradient(colors: [.black.opacity(0.04), .clear, .black.opacity(0.13)]),
+                                                startPoint: .top,
+                                                endPoint: .bottom
+                                            )
+                                        )
+                                case .failure:
+                                    ZStack {
+                                        Color(.systemGray5)
+                                        Image(systemName: "photo")
+                                            .font(.largeTitle)
+                                            .foregroundColor(.gray)
+                                    }
+                                @unknown default: EmptyView()
+                                }
+                            }
+                            .frame(height: 220)
+                            .frame(maxWidth: .infinity)
+                            .clipped()
+                            .cornerRadius(18)
+                            .shadow(color: .black.opacity(0.10), radius: 8, x: 0, y: 4)
+                            .padding([.top, .horizontal])
                         }
-                        .frame(width: 32, height: 32)
 
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(entry.locationName)
-                                .font(.subheadline).bold()
-                            Text(entry.locationAddress)
+                            // 날짜 (오늘 날짜가 아니라면 아래처럼 가공)
+                            Text(Date.now, style: .date)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
+                                .padding(.horizontal)
+                                .padding(.bottom, 2)
+                            // 제목
+                            Text(detail.title)
+                                .font(.system(size: 23, weight: .semibold))
+                                .foregroundColor(.black)
+                                .padding(.horizontal)
                         }
-                    }
-                }
-                .padding(.horizontal)
 
-                // 데이트 코스 섹션
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("데이트 코스")
-                        .font(.headline)
-                    ForEach(entry.courses) { course in
-                        HStack(spacing: 12) {
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color(.systemGray6))
-                                Image(systemName: course.iconName)
-                                    .foregroundColor(.black)
+                        // 일기(메모) 카드
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "text.justify.left")
+                                    .foregroundColor(.blue)
+                                    .font(.system(size: 18))
+                                Text("일기")
+                                    .font(.headline)
+                                    .foregroundColor(.blue)
                             }
-                            .frame(width: 32, height: 32)
+                            .padding(.bottom, 2)
 
-                            Text(course.title)
-                                .font(.subheadline)
+                            Text(detail.diary)
+                                .font(.body)
+                                .foregroundColor(.primary)
+                                .lineSpacing(6)
+                                .padding(14)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 13)
+                                        .fill(Color(.white))
+                                        .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 2)
+                                )
+                            
+                            randomQuoteBanner // 새로 정의한 랜덤 한마디 배너 추가
+                                .padding(.bottom, 20) // 배너 아래 여백
+                            Spacer(minLength: 20)
                         }
+                        
+                        
+                        .padding([.horizontal, .bottom])
+
+                        Spacer(minLength: 20)
                     }
+                    .padding(.top, 10)
+                } else {
+                    VStack(spacing: 12) {
+                        Spacer(minLength: 100)
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.largeTitle)
+                            .foregroundColor(.red)
+                        Text("불러오기 실패")
+                            .font(.headline)
+                        if let msg = errorMessage {
+                            Text(msg).font(.footnote).foregroundColor(.secondary)
+                        }
+                        Spacer()
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 320)
                 }
-                .padding(.horizontal)
-
-                // 메모 섹션
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("메모")
-                        .font(.headline)
-                    Text(entry.memo)
-                        .font(.body)
-                        .foregroundColor(.primary)
-                }
-                .padding(.horizontal)
-
-                Spacer(minLength: 20)
             }
         }
         .navigationBarTitle("데이트 로그", displayMode: .inline)
@@ -120,28 +200,21 @@ struct DateLogDetailView: View {
                 }
             }
         }
+        .task { await loadDetail() }
+        .alert("불러오기 실패", isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
+            Button("확인", role: .cancel) { errorMessage = nil }
+        }
     }
-}
 
-// MARK: - 미리보기
-struct DateLogDetailView_Previews: PreviewProvider {
-    static var previews: some View {
-        NavigationStack {
-            DateLogDetailView(
-                entry: DateLogDetail(
-                    imageName: "sample04",
-                    title: "편안한 일상 데이트",
-                    date: "2024.07.21",
-                    locationName: "주 데이트 장소",
-                    locationAddress: "데이트 위치",
-                    courses: [
-                        DetailCourseItem(iconName: "mappin.and.ellipse", title: "투썸 플레이스에서 커피 마시기"),
-                        DetailCourseItem(iconName: "mappin.and.ellipse", title: "경의선 숲길 걷기"),
-                        DetailCourseItem(iconName: "mappin.and.ellipse", title: "저녁 식사 장소")
-                    ],
-                    memo: "너무 좋아요"
-                )
-            )
+    func loadDetail() async {
+        isLoading = true
+        defer { isLoading = false }
+        do {
+            self.detail = try await APIManager.shared.fetchDateLogDetail(datelogId: datelogId)
+            self.errorMessage = nil
+        } catch {
+            self.detail = nil
+            self.errorMessage = error.localizedDescription
         }
     }
 }

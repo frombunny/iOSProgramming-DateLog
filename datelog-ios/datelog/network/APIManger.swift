@@ -219,6 +219,14 @@ actor APIManager {
             print(decoded)
             return decoded.data
         }
+    
+        // 데이트로그 상세 조회
+        func fetchDateLogDetail(datelogId: Int) async throws -> DateLogDetailRes {
+            let req = try makeRequest(path: "/api/datelog/\(datelogId)")
+            let (data, _) = try await URLSession.shared.data(for: req)
+            let decoded = try JSONDecoder().decode(DateLogDetailResponse.self, from: data)
+            return decoded.data
+        }
 
     
         // 데이트로그 작성 API

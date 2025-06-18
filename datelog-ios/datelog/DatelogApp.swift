@@ -9,11 +9,28 @@ import SwiftUI
 
 @main
 struct DatelogApp: App {
+    @State private var showSplash: Bool = true
+
     var body: some Scene {
         WindowGroup {
-            NavigationStack {
-                SignUpView()
+            ZStack {
+                if showSplash {
+                    SplashView()
+                        .onAppear {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                withAnimation {
+                                    self.showSplash = false
+                                }
+                            }
+                        }
+                } else {
+                    NavigationStack {
+                        SignUpView()
+                    }
+                }
             }
         }
     }
 }
+
+

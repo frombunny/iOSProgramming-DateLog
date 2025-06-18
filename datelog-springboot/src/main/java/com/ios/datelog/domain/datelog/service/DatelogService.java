@@ -44,7 +44,7 @@ public class DatelogService {
     public List<GetDatelogRes> getAllDatelogs(UserPrincipal userPrincipal) {
         User user = userRepository.getUserById(userPrincipal.getId());
 
-        return datelogRepository.findAllByUser(user).stream()
+        return datelogRepository.findAllByUserOrderByCreatedAtDesc(user).stream()
                 .map(GetDatelogRes::from)
                 .collect(Collectors.toList());
     }

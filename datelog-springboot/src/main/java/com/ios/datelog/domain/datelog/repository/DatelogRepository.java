@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface DatelogRepository extends JpaRepository<Datelog, Long> {
-    List<Datelog> findAllByUser(User user);
+    List<Datelog> findAllByUserOrderByCreatedAtDesc(User user);
 
     default Datelog getDatelogById(Long id) {
         return this.findById(id).orElseThrow(DatelogNotFoundException::new);
